@@ -22,7 +22,7 @@ def send_messages_periodic():
 
 def send_message(message_id):
     message = Message.objects.get(id=message_id)
-    client = SMSSender(api_id=settings.SMS_RU_ID)
+    client = SMSRuAPI(api_id=settings.SMS_RU_ID)
     api_response = client.send(message.recipient, message.content)
     if getattr(settings, u'SMS_RU_STORE_SMS_COST', False):
         cost_api_response = client.get_cost(message.recipient, message.content)
