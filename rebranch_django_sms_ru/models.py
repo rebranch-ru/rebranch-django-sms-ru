@@ -6,7 +6,7 @@ from django.contrib.contenttypes import generic
 
 from rebranch_django_sms_ru.utils import CeleryMessageMixin
 from rebranch_sms_ru.statuses import STATUS_CHOICES
-from rebranch_sms_ru.utils import clean_phone
+# from rebranch_sms_ru.utils import clean_phone
 
 
 class Message(models.Model, CeleryMessageMixin):
@@ -39,7 +39,7 @@ class Message(models.Model, CeleryMessageMixin):
     def __unicode__(self):
         return self.recipient
 
-    clean_phone = staticmethod(clean_phone)
+    # clean_phone = staticmethod(clean_phone)
 
     def send_async(self):
         from rebranch_django_sms_ru.tasks import send_message_momentary
