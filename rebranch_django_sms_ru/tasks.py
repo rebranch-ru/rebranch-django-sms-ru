@@ -34,4 +34,8 @@ def send_message(message_id):
     message.commit_attempt()
     if int(message.status) in [100, 101, 102, 103]:
         message.send_in_periodic = False
+    else:
+        max_attempts_limit = getattr(settings, u'SMS_RU_MAX_ATTEMPTS_LIMIT', 5)
+        if message.number_of_attempts >= max_attempts_limit:
+            message.send_in_periodic = False
     message.save()

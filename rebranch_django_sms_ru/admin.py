@@ -35,7 +35,7 @@ class MessageModelAdmin(ModelAdminWithFKLink):
     list_filter = (u'queue_type', RawStatusSimpleListFilter)
 
     list_display = (
-        u'recipient', u'api_id', u'sent', u'queue_type', u'status_raw', u'status', 'send_in_periodic',
+        u'recipient', u'content', u'api_id', u'sent', u'queue_type', u'status_raw', u'status', 'send_in_periodic',
         u'number_of_attempts', u'link_to_content_object')
     if getattr(settings, u'SMS_RU_STORE_SMS_COST', False):
         list_display += (u'cost',)
