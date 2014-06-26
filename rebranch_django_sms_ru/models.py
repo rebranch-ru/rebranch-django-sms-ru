@@ -27,8 +27,15 @@ class Message(models.Model, CeleryMessageMixin):
     queue_type = models.IntegerField(u'Тип очереди', choices=CeleryMessageMixin.QUEUE_TYPE_CHOICES)
     status = models.IntegerField(u'Статус', choices=STATUS_CHOICES.items(), null=True, blank=True)
     cost = models.DecimalField(u'Стоимость', null=True, blank=True, decimal_places=3, max_digits=10)
+    number_of_attempts = models.IntegerField(u'Число попыток', default=0)
+    send_in_periodic = models.BooleanField(u'Отправить в периодической задаче рассылки', default=False)
 
     created = models.DateTimeField(auto_now_add=True)
+
+    def commit_attempt(self):
+        if self.id:
+            self.number_of_attempts = models.F('number_of_attempts') + 1
+            self.save()
 
     class Meta:
         verbose_name = u'SMS-сообщение'
@@ -40,6 +47,12 @@ class Message(models.Model, CeleryMessageMixin):
         return self.recipient
 
     clean_phone = staticmethod(clean_phone)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            if self.queue_type == self.QUEUE_TYPE_PERIODIC:
+                self.send_in_periodic = True
+        return super(Message, self).save(*args, **kwargs)
 
     def send_async(self):
         from rebranch_django_sms_ru.tasks import send_message_momentary

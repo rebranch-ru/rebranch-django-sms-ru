@@ -22,12 +22,21 @@ class RawStatusSimpleListFilter(admin.SimpleListFilter):
             return queryset
 
 
+def do_not_send(modeladmin, request, queryset):
+    queryset.update(send_in_periodic=False)
+
+
+do_not_send.short_description = "Не отправлять в периодической задаче рассылки"
+
+
 class MessageModelAdmin(ModelAdminWithFKLink):
+    actions = [do_not_send]
     search_fields = (u'recipient', u'api_id')
     list_filter = (u'queue_type', RawStatusSimpleListFilter)
 
     list_display = (
-    u'recipient', u'api_id', u'sent', u'queue_type', u'status_raw', u'status', u'link_to_content_object')
+        u'recipient', u'api_id', u'sent', u'queue_type', u'status_raw', u'status', 'send_in_periodic',
+        u'number_of_attempts', u'link_to_content_object')
     if getattr(settings, u'SMS_RU_STORE_SMS_COST', False):
         list_display += (u'cost',)
 

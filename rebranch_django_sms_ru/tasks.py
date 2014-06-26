@@ -15,7 +15,7 @@ def send_message_momentary(message_id):
 
 @celery_app.task(ignore_results=True, name=u'rebranch_sms_ru.tasks.send_messages_periodic')
 def send_messages_periodic():
-    messages = Message.objects.filter(queue_type=Message.QUEUE_TYPE_PERIODIC).exclude(status=100)
+    messages = Message.objects.filter(send_in_periodic=True)
     for message in messages:
         send_message(message.id)
 
@@ -31,4 +31,7 @@ def send_message(message_id):
     message.sent = datetime.datetime.now()
     message.api_id = api_response[u'sms_id']
     message.status = api_response[u'status']
+    message.commit_attempt()
+    if int(message.status) in [100, 101, 102, 103]:
+        message.send_in_periodic = False
     message.save()
