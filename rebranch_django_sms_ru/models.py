@@ -3,10 +3,14 @@ import re
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from django.conf import settings
 
 from rebranch_django_sms_ru.utils import CeleryMessageMixin
 from rebranch_sms_ru.statuses import STATUS_CHOICES
 from rebranch_sms_ru.utils import clean_phone
+
+if hasattr(settings, u'SMS_RU_TASK_QUEUE_BACKEND'):
+    from rebranch_django_sms_ru.tasks import send_message_momentary
 
 
 class Message(models.Model, CeleryMessageMixin):
@@ -54,10 +58,17 @@ class Message(models.Model, CeleryMessageMixin):
                 self.send_in_periodic = True
         return super(Message, self).save(*args, **kwargs)
 
-    def send_async(self):
-        from rebranch_django_sms_ru.tasks import send_message_momentary
+    if hasattr(settings, u'SMS_RU_TASK_QUEUE_BACKEND'):
 
-        send_message_momentary.apply_async(kwargs={u'message_id': self.id})
+        if settings.SMS_RU_TASK_QUEUE_BACKEND.upper() == u'CELERY':
+            from .tasks import *
 
+            def send_async(self):
+                send_message_momentary.apply_async(kwargs={u'message_id': self.id})
 
-from .tasks import *
+        elif settings.SMS_RU_TASK_QUEUE_BACKEND.upper() == u'RQ':
+            def send_async(self):
+                send_message_momentary.delay(message_id=self.id)
+    else:
+        def send_async(self):
+            raise NotImplementedError(u'You must define SMS_RU_TASK_QUEUE_BACKEND first!')
