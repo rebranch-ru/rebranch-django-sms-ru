@@ -68,6 +68,9 @@ if hasattr(settings, u'SMS_RU_TASK_QUEUE_BACKEND'):
     elif settings.SMS_RU_TASK_QUEUE_BACKEND.upper() == u'RQ':
         from django_rq import job
 
-        send_message_momentary = job(send_message_momentary)
+        send_message_momentary = job(
+            send_message_momentary,
+            result_ttl=getattr(settings, u'SMS_RU_SEND_RESULT_TTL', None)
+        )
     else:
         raise Exception(u'Unknown task queue backend!')
